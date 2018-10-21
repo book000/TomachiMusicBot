@@ -35,6 +35,12 @@ public class Cmd_NowPlaying {
 		AudioPlayer audioP = AudioPlayer.getAudioPlayerForGuild(guild);
 		Track track = audioP.getCurrentTrack();
 
+		if(track == null){
+			embed.appendField("Error", "現在なにも曲は流れていません！", false);
+			embed.withColor(Color.RED);
+			channel.sendMessage("", embed.build());
+		}
+
 		File file = (File) track.getMetadata().get("file");
 		try{
 			Mp3File mp3file = new Mp3File(file);

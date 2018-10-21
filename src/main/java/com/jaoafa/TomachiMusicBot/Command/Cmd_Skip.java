@@ -11,6 +11,7 @@ import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.audio.AudioPlayer;
+import sx.blah.discord.util.audio.AudioPlayer.Track;
 
 public class Cmd_Skip {
 	public static void onCommand(IDiscordClient client, IGuild guild, IChannel channel, IUser author, IMessage message, String[] args){
@@ -20,8 +21,16 @@ public class Cmd_Skip {
 		embed.withAuthorIcon(client.getApplicationIconURL());
 		embed.withAuthorName("TomachiMusicBot");
 		embed.withAuthorUrl("https://github.com/book000/TomachiMusicBot");
-
 		AudioPlayer audioP = AudioPlayer.getAudioPlayerForGuild(guild);
+
+		Track track = audioP.getCurrentTrack();
+
+		if(track == null){
+			embed.appendField("Error", "現在なにも曲は流れていません！", false);
+			embed.withColor(Color.RED);
+			channel.sendMessage("", embed.build());
+		}
+
 		audioP.skip();
 
 		embed.appendField("Successful", ":fast_forward: ", false);
