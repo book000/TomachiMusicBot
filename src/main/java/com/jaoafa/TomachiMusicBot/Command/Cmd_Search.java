@@ -466,7 +466,7 @@ public class Cmd_Search {
 			}
 			i++;
 		}
-		embed.appendField("Tip", "/search page <Page>で指定したページを閲覧できます。/search select <TrackNum>でその曲を選択(再生)できます。", false);
+		embed.appendField("Tip", "*search page <Page>で指定したページを閲覧できます。*search select <TrackNum>でその曲を選択(再生)できます。", false);
 		embed.withColor(Color.ORANGE);
 		channel.sendMessage("", embed.build());
 	}

@@ -56,6 +56,8 @@ public class MainEvent {
 			Cmd_NowPlaying.onCommand(client, guild, channel, author, message, args);
 		}else if(args[0].equalsIgnoreCase("*volume")){
 			Cmd_Volume.onCommand(client, guild, channel, author, message, args);
+		}else if(args[0].equalsIgnoreCase("*random")){
+			Cmd_Random.onCommand(client, guild, channel, author, message, args);
 		}
 	}
 	/*

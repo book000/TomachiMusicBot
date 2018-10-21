@@ -1,5 +1,7 @@
 package com.jaoafa.TomachiMusicBot.Command;
 
+import java.awt.Color;
+
 import com.jaoafa.TomachiMusicBot.TomachiMusicBot;
 
 import sx.blah.discord.api.IDiscordClient;
@@ -35,8 +37,13 @@ public class Cmd_Volume {
 				float New_Vol = audioP.getVolume();
 				embed.appendField("変更前の音量", "" + New_Vol, false);
 			}catch(NumberFormatException e){
-				embed.appendField("Error", "音量には数値(自然数含む)を指定してください。", false);
+				embed.appendField("Error", "音量には数値(小数含む)を指定してください。", false);
 			}
+		}else{
+			return;
 		}
+		embed.withColor(Color.ORANGE);
+
+		channel.sendMessage("", embed.build());
 	}
 }

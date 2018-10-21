@@ -29,6 +29,7 @@ public class Cmd_Skip {
 			embed.appendField("Error", "現在なにも曲は流れていません！", false);
 			embed.withColor(Color.RED);
 			channel.sendMessage("", embed.build());
+			return;
 		}
 
 		audioP.skip();

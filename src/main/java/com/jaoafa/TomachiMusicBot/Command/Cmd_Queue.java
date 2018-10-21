@@ -8,7 +8,6 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import com.jaoafa.TomachiMusicBot.TomachiMusicBot;
 import com.mpatric.mp3agic.InvalidDataException;
@@ -47,9 +46,6 @@ public class Cmd_Queue {
 
 		int i = 1;
 		for(Track track : tracks){
-			for (Map.Entry<String, Object> A : track.getMetadata().entrySet()) {
-				System.out.println(A.getKey() + " = " + A.getValue());
-			}
 			File file = (File) track.getMetadata().get("file");
 			if(file == null){
 				embed.appendField("Track No." + i, "Load Error.", false);
