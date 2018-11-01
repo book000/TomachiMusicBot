@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import com.jaoafa.TomachiMusicBot.Command.MainEvent;
+import com.jaoafa.TomachiMusicBot.Event.Event_TrackFinish;
+import com.jaoafa.TomachiMusicBot.Event.Event_TrackStart;
 import com.vdurmont.emoji.Emoji;
 import com.vdurmont.emoji.EmojiManager;
 
@@ -71,6 +73,9 @@ public class TomachiMusicBot {
 		IDiscordClient client = createClient(token, true);
 		EventDispatcher dispatcher = client.getDispatcher();
 		dispatcher.registerListener(new MainEvent());
+
+		dispatcher.registerListener(new Event_TrackStart());
+		dispatcher.registerListener(new Event_TrackFinish());
 	}
 	public static IDiscordClient createClient(String token, boolean login) { // Returns a new instance of the Discord client
 		ClientBuilder clientBuilder = new ClientBuilder(); // Creates the ClientBuilder instance

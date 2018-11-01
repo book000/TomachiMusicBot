@@ -23,11 +23,11 @@ public class Cmd_Volume {
 
 		AudioPlayer audioP = AudioPlayer.getAudioPlayerForGuild(guild);
 
-		if(args.length == 0){
+		if(args.length == 1){
 			// 表示のみ
 			float vol = audioP.getVolume();
 			embed.appendField("現在の音量", vol + "%", false);
-		}else if(args.length == 1){
+		}else if(args.length == 2){
 			// 変更
 			float Changevol = audioP.getVolume();
 			try{

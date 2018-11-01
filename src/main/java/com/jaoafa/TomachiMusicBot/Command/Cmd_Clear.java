@@ -5,10 +5,12 @@ import java.awt.Color;
 import com.jaoafa.TomachiMusicBot.TomachiMusicBot;
 
 import sx.blah.discord.api.IDiscordClient;
+import sx.blah.discord.handle.obj.ActivityType;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.handle.obj.StatusType;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.audio.AudioPlayer;
 
@@ -28,5 +30,7 @@ public class Cmd_Clear {
 		embed.withColor(Color.ORANGE);
 
 		channel.sendMessage("", embed.build());
+
+		client.changePresence(StatusType.ONLINE, ActivityType.PLAYING, "Waiting... | *search <Text>");
 	}
 }

@@ -493,7 +493,7 @@ public class Cmd_Search {
 		return returnFiles;
 	}
 
-	static String SecToHIS(long _sec){
+	public static String SecToHIS(long _sec){
 		StringBuilder builder = new StringBuilder();
 		int hour = (int) (_sec / 3600L);
 		int hour_remain = (int) (_sec % 3600L);
