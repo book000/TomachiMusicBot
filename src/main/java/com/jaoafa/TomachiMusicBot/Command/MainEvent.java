@@ -1,21 +1,28 @@
 package com.jaoafa.TomachiMusicBot.Command;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.ReadyEvent;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelLeaveEvent;
 import sx.blah.discord.handle.impl.events.guild.voice.user.UserVoiceChannelMoveEvent;
+import sx.blah.discord.handle.obj.ActivityType;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.handle.obj.IVoiceChannel;
+import sx.blah.discord.handle.obj.StatusType;
 
 public class MainEvent {
 	@EventSubscriber
 	public void onReadyEvent(ReadyEvent event) {
 		System.out.println("Ready: " + event.getClient().getOurUser().getName());
+
+		event.getClient().changePresence(StatusType.ONLINE, ActivityType.PLAYING, "Waiting... | *search <Text>");
 	}
 	@EventSubscriber
 	public void onMessageReceivedEvent(MessageReceivedEvent event) {
@@ -92,7 +99,14 @@ public class MainEvent {
 			return;
 		}
 
-		if(vc.getConnectedUsers().size() == 1){ // 自分含め
+		List<IUser> noBots = new ArrayList<>();
+		for(IUser user : vc.getConnectedUsers()){
+			if(user.isBot()){
+				continue;
+			}
+			noBots.add(user);
+		}
+		if(noBots.size() == 0){ // 自分含め
 			vc.leave();
 		}
 	}
@@ -112,7 +126,14 @@ public class MainEvent {
 			return;
 		}
 
-		if(vc.getConnectedUsers().size() == 1){ // 自分含め
+		List<IUser> noBots = vc.getConnectedUsers();
+		for(IUser user : vc.getConnectedUsers()){
+			if(user.isBot()){
+				continue;
+			}
+			noBots.add(user);
+		}
+		if(noBots.size() == 0){ // 自分含め
 			vc.leave();
 		}
 	}
