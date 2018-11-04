@@ -34,7 +34,7 @@ public class Cmd_Skip {
 
 		audioP.skip();
 
-		embed.appendField("Successful", ":fast_forward: ", false);
+		embed.appendField("Successful", ":fast_forward:", false);
 		embed.withColor(Color.ORANGE);
 
 		channel.sendMessage("", embed.build());

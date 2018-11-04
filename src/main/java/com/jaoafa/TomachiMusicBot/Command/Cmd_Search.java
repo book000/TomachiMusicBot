@@ -49,10 +49,10 @@ public class Cmd_Search {
 
 		if(args.length == 1){
 			// 1つしか引数がない→ヘルプ
-			embed.appendField("Help", "/search <Title,Artist,Album|page|select> [Value]\n"
-					+ "\"title:<Title>\": タイトルのみで検索します。\n"
-					+ "\"artist:<Artist>\": アーティスト名のみで検索します。\n"
-					+ "\"album:<Album>\": アルバム名のみで検索します。", false);
+			embed.appendField("Help", "`*search <Title,Artist,Album|page|select> [Value]`\n"
+					+ "`title:<Title>`: タイトルのみで検索します。\n"
+					+ "`artist:<Artist>`: アーティスト名のみで検索します。\n"
+					+ "`album:<Album>`: アルバム名のみで検索します。", false);
 			embed.withColor(Color.GREEN);
 
 			channel.sendMessage("", embed.build());
@@ -88,14 +88,14 @@ public class Cmd_Search {
 		if(args[1].equalsIgnoreCase("page")){
 			// ページモード
 			if(!searchData.containsKey(author.getLongID())){
-				embed.appendField("Error", "ページ情報が取得できません。/searchコマンドを使用して検索を行ってください。", false);
+				embed.appendField("Error", "ページ情報が取得できません。`*search`コマンドを使用して検索を行ってください。", false);
 				embed.withColor(Color.RED);
 
 				channel.sendMessage("", embed.build());
 				return;
 			}
 			if(args.length != 3){
-				embed.appendField("Error", "引数が不適切です。例: /search page 2", false);
+				embed.appendField("Error", "引数が不適切です。例: `*search page 2`", false);
 				embed.withColor(Color.RED);
 
 				channel.sendMessage("", embed.build());
@@ -122,7 +122,7 @@ public class Cmd_Search {
 		}else if(args[1].equalsIgnoreCase("select")){
 			// 選択モード
 			if(!searchData.containsKey(author.getLongID())){
-				embed.appendField("Error", "ページ情報が取得できません。/searchコマンドを使用して検索を行ってください。", false);
+				embed.appendField("Error", "ページ情報が取得できません。`*search`コマンドを使用して検索を行ってください。", false);
 				embed.withColor(Color.RED);
 
 				channel.sendMessage("", embed.build());
@@ -466,7 +466,7 @@ public class Cmd_Search {
 			}
 			i++;
 		}
-		embed.appendField("Tip", "*search page <Page>で指定したページを閲覧できます。*search select <TrackNum>でその曲を選択(再生)できます。", false);
+		embed.appendField("Tip", "`*search page <Page>`で指定したページを閲覧できます。`*search select <TrackNum>`でその曲を選択(再生)できます。", false);
 		embed.withColor(Color.ORANGE);
 		channel.sendMessage("", embed.build());
 	}

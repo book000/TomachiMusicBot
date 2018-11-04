@@ -37,7 +37,7 @@ public class Cmd_Queue {
 		List<Track> tracks = audioP.getPlaylist();
 
 		if(tracks.isEmpty()){
-			embed.appendField("Result", "キューに曲がありません！ /searchコマンドを使用して追加しよう！", false);
+			embed.appendField("Result", "キューに曲がありません！ `*search`コマンドを使用して追加しよう！", false);
 			embed.withColor(Color.DARK_GRAY);
 
 			channel.sendMessage("", embed.build());
