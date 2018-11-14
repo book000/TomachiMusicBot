@@ -16,6 +16,7 @@ import sx.blah.discord.util.EmbedBuilder;
 public class Cmd_Summon {
 	public static void onCommand(IDiscordClient client, IGuild guild, IChannel channel, IUser author, IMessage message, String[] args){
 		TomachiMusicBot.check(message);
+		TomachiMusicBot.setChannel(message);
 		EmbedBuilder embed = new EmbedBuilder();
 		embed.withTitle("TomachiMusicBot - Summon");
 		embed.withAuthorIcon(client.getApplicationIconURL());

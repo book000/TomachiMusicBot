@@ -16,6 +16,9 @@ import sx.blah.discord.util.audio.events.TrackFinishEvent;
 public class Event_TrackFinish {
 	@EventSubscriber
 	public void onTrackFinishEvent(TrackFinishEvent event){
+		if(Event_TrackStart.LyricsMessage != null && !Event_TrackStart.LyricsMessage.isDeleted()){
+			Event_TrackStart.LyricsMessage.delete();
+		}
 		if(event.getNewTrack().isPresent()){
 			// 次がある
 			Track track = event.getNewTrack().get();

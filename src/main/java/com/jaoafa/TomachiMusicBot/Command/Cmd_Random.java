@@ -25,6 +25,7 @@ public class Cmd_Random {
 
 	public static void onCommand(IDiscordClient client, IGuild guild, IChannel channel, IUser author, IMessage message, String[] args){
 		TomachiMusicBot.check(message);
+		TomachiMusicBot.setChannel(message);
 		EmbedBuilder embed = new EmbedBuilder();
 		embed.withTitle("TomachiMusicBot - Random");
 		embed.withAuthorIcon(client.getApplicationIconURL());

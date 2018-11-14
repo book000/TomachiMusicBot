@@ -17,12 +17,14 @@ import com.vdurmont.emoji.EmojiManager;
 import sx.blah.discord.api.ClientBuilder;
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.api.events.EventDispatcher;
+import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.util.DiscordException;
 
 public class TomachiMusicBot {
 	public static String ImgurKey = null;
 	public static String ImgurKeySECRET = null;
+	private static IChannel Channel = null;
 	public static void main(String[] args) {
 		File f = new File("conf.properties");
 		Properties props;
@@ -76,6 +78,8 @@ public class TomachiMusicBot {
 
 		dispatcher.registerListener(new Event_TrackStart());
 		dispatcher.registerListener(new Event_TrackFinish());
+
+		Channel = client.getChannelByID(512242412635029514L);
 	}
 	public static IDiscordClient createClient(String token, boolean login) { // Returns a new instance of the Discord client
 		ClientBuilder clientBuilder = new ClientBuilder(); // Creates the ClientBuilder instance
@@ -94,5 +98,14 @@ public class TomachiMusicBot {
 	public static void check(IMessage message){
 		Emoji e = EmojiManager.getForAlias("eye");
 		message.addReaction(e);
+	}
+	public static void setChannel(IMessage message){
+		Channel = message.getChannel();
+	}
+	public static void setChannel(IChannel channel){
+		Channel = channel;
+	}
+	public static IChannel getChannel(){
+		return Channel;
 	}
 }

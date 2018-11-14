@@ -16,6 +16,7 @@ import sx.blah.discord.util.audio.AudioPlayer.Track;
 public class Cmd_Skip {
 	public static void onCommand(IDiscordClient client, IGuild guild, IChannel channel, IUser author, IMessage message, String[] args){
 		TomachiMusicBot.check(message);
+		TomachiMusicBot.setChannel(message);
 		EmbedBuilder embed = new EmbedBuilder();
 		embed.withTitle("TomachiMusicBot - Skip");
 		embed.withAuthorIcon(client.getApplicationIconURL());

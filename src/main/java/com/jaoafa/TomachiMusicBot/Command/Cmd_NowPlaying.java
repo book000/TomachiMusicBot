@@ -25,6 +25,7 @@ import sx.blah.discord.util.audio.AudioPlayer.Track;
 public class Cmd_NowPlaying {
 	public static void onCommand(IDiscordClient client, IGuild guild, IChannel channel, IUser author, IMessage message, String[] args){
 		TomachiMusicBot.check(message);
+		TomachiMusicBot.setChannel(message);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		EmbedBuilder embed = new EmbedBuilder();
 		embed.withTitle("TomachiMusicBot - NowPlaying");
