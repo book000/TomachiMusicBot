@@ -239,7 +239,7 @@ public class Cmd_Search {
 
 		String searchText = implode(slicedArgs, " ");
 
-		List<File> songDir = getIterateListFiles(new File("music"));
+		List<File> songDir = TomachiMusicBot.getMusicFiles();
 
 		if(songDir == null || songDir.size() == 0){
 			embed.appendField("Error", "musicディレクトリにファイルが見つかりません。", false);
@@ -293,6 +293,10 @@ public class Cmd_Search {
 						matchFiles.add(file);
 						continue;
 					}
+					if(file.getName().contains(searchText)){
+						matchFiles.add(file);
+						continue;
+					}
 				}else if(mp3file.hasId3v1Tag()){
 					ID3v1 id3v1Tag = mp3file.getId3v1Tag();
 
@@ -329,6 +333,10 @@ public class Cmd_Search {
 						continue;
 					}
 					if(album.contains(searchText)){
+						matchFiles.add(file);
+						continue;
+					}
+					if(file.getName().contains(searchText)){
 						matchFiles.add(file);
 						continue;
 					}
@@ -470,28 +478,6 @@ public class Cmd_Search {
 		embed.appendField("Tip", "`*search page <Page>`で指定したページを閲覧できます。`*search select <TrackNum>`でその曲を選択(再生)できます。", false);
 		embed.withColor(Color.ORANGE);
 		channel.sendMessage("", embed.build());
-	}
-
-	static List<File> getIterateListFiles(File dir){
-		List<File> returnFiles = new ArrayList<>();
-		if(!dir.isDirectory()){
-			return returnFiles;
-		}
-		File[] files = dir.listFiles();
-		if(files == null){
-			return returnFiles;
-		}
-		for(File file : files){
-			if(!file.exists()){
-				continue;
-			}else if(file.isDirectory()){
-				List<File> dir_files = getIterateListFiles(file);
-				if(dir_files.size() != 0) returnFiles.addAll(dir_files);
-			}else if(file.isFile()){
-				returnFiles.add(file);
-			}
-		}
-		return returnFiles;
 	}
 
 	public static String SecToHIS(long _sec){

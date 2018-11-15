@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import com.jaoafa.TomachiMusicBot.Command.MainEvent;
@@ -25,6 +27,7 @@ public class TomachiMusicBot {
 	public static String ImgurKey = null;
 	public static String ImgurKeySECRET = null;
 	private static IChannel Channel = null;
+	private static List<File> songDir;
 	public static void main(String[] args) {
 		File f = new File("conf.properties");
 		Properties props;
@@ -107,5 +110,36 @@ public class TomachiMusicBot {
 	}
 	public static IChannel getChannel(){
 		return Channel;
+	}
+	public static List<File> getMusicFiles(){
+		if(songDir == null){
+			// 音源ファイルキャッシュ？
+			songDir = getIterateListFiles(new File("music"));
+		}
+		return songDir;
+	}
+	public static void refreshMusicFiles(){
+		songDir = getIterateListFiles(new File("music"));
+	}
+	static List<File> getIterateListFiles(File dir){
+		List<File> returnFiles = new ArrayList<>();
+		if(!dir.isDirectory()){
+			return returnFiles;
+		}
+		File[] files = dir.listFiles();
+		if(files == null){
+			return returnFiles;
+		}
+		for(File file : files){
+			if(!file.exists()){
+				continue;
+			}else if(file.isDirectory()){
+				List<File> dir_files = getIterateListFiles(file);
+				if(dir_files.size() != 0) returnFiles.addAll(dir_files);
+			}else if(file.isFile()){
+				returnFiles.add(file);
+			}
+		}
+		return returnFiles;
 	}
 }

@@ -32,7 +32,7 @@ public class Cmd_Random {
 		embed.withAuthorName("TomachiMusicBot");
 		embed.withAuthorUrl("https://github.com/book000/TomachiMusicBot");
 
-		List<File> songDir = Cmd_Search.getIterateListFiles(new File("music"));
+		List<File> songDir = TomachiMusicBot.getMusicFiles();
 
 		Collections.shuffle(songDir);
 
