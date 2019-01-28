@@ -47,6 +47,8 @@ public class MainEvent {
 		}
 		if(args[0].equalsIgnoreCase("*search")){
 			Cmd_Search.onCommand(client, guild, channel, author, message, args);
+		}else if(args[0].equalsIgnoreCase("*play")){
+			Cmd_Search.onCommand(client, guild, channel, author, message, args);
 		}else if(args[0].equalsIgnoreCase("*summon")){
 			Cmd_Summon.onCommand(client, guild, channel, author, message, args);
 		}else if(args[0].equalsIgnoreCase("*disconnect")){
