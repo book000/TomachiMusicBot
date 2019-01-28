@@ -44,7 +44,7 @@ public class Cmd_Info {
 		Map<String, Integer> artists = new HashMap<>();
 		Map<String, Integer> albums = new HashMap<>();
 		for(File file : songDir){
-			if(file.isFile()) size = file.length();
+			if(file.isFile()) size += file.length();
 			try {
 				Mp3File mp3file = new Mp3File(file);
 
@@ -79,7 +79,7 @@ public class Cmd_Info {
 						albums.put(album, 1);
 					}
 				}
-				if(file.isFile()) sizeOK = file.length();
+				if(file.isFile()) sizeOK += file.length();
 
 				okSong++;
 			} catch (UnsupportedTagException | InvalidDataException | IOException | IllegalArgumentException e) {

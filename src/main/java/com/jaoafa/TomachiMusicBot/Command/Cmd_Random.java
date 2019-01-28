@@ -84,7 +84,7 @@ public class Cmd_Random {
 				String TimeStr = Cmd_Search.SecToHIS(sec);
 
 				if(NOInstrumental){
-					if(title.contains("instrumental") || title.contains("Instrumental") || title.contains("カラオケ") || title.contains("ドラマ")){
+					if(title.contains("instrumental") || title.contains("Instrumental") || title.contains("カラオケ") || title.contains("off vocal") || title.contains("ドラマ")){
 						continue;
 					}
 				}
