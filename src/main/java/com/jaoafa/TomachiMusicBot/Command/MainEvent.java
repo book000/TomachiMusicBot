@@ -26,7 +26,6 @@ public class MainEvent {
 	}
 	@EventSubscriber
 	public void onMessageReceivedEvent(MessageReceivedEvent event) {
-		System.out.println("Msg: " + event.getAuthor().getName() + " " + event.getMessage().getContent());
 
 		IDiscordClient client = event.getClient();
 		IGuild guild = event.getGuild();
@@ -38,6 +37,7 @@ public class MainEvent {
 		if(!text.startsWith("*")){
 			return;
 		}
+		System.out.println("Msg: " + event.getAuthor().getName() + " " + event.getMessage().getContent());
 
 		String[] args;
 		if(text.contains(" ")){
