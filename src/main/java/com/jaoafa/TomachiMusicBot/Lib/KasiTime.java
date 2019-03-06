@@ -17,18 +17,24 @@ public class KasiTime {
 		title = title.replaceAll("\"", "_");
 		title = title.trim();
 
-		artist = artist.replaceAll("\\(.*?\\)", "");
-		artist = artist.replaceAll("\\[.*?\\]", "");
-		artist = artist.replaceAll("'", "_");
-		artist = artist.replaceAll("\"", "_");
-		artist = artist.trim();
+		if(artist != null){
+			artist = artist.replaceAll("\\(.*?\\)", "");
+			artist = artist.replaceAll("\\[.*?\\]", "");
+			artist = artist.replaceAll("'", "_");
+			artist = artist.replaceAll("\"", "_");
+			artist = artist.trim();
+		}
 
 		Class.forName("org.sqlite.JDBC");
 		Connection conn = DriverManager.getConnection("jdbc:sqlite:kasiTime.db");
-		PreparedStatement statement = conn.prepareStatement("SELECT * FROM data WHERE title LIKE ? AND artist LIKE ?");
-
+		PreparedStatement statement;
+		if(artist != null){
+			statement = conn.prepareStatement("SELECT * FROM data WHERE title LIKE ? AND artist LIKE ?");
+			statement.setString(2, "%" + artist + "%");
+		}else{
+			statement = conn.prepareStatement("SELECT * FROM data WHERE title LIKE ?");
+		}
 		statement.setString(1, "%" + title + "%");
-		statement.setString(2, "%" + artist + "%");
 
 		ResultSet res = statement.executeQuery();
 		if(res.next()){

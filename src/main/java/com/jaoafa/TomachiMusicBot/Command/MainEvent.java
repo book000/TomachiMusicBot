@@ -43,7 +43,11 @@ public class MainEvent {
 		if(text.contains(" ")){
 			args = text.split(" ");
 		}else{
-			args = new String[]{text};
+			if(text.contains("\n")){
+				args = text.split("\n");
+			}else{
+				args = new String[]{text};
+			}
 		}
 		if(args[0].equalsIgnoreCase("*search")){
 			Cmd_Search.onCommand(client, guild, channel, author, message, args);

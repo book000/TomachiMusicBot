@@ -1,19 +1,15 @@
 package com.jaoafa.TomachiMusicBot.Lib;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.zip.GZIPInputStream;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONTokener;
+
+import com.jaoafa.TomachiMusicBot.TomachiMusicBot;
 
 public class MusixMatch {
 	private boolean status = true;
@@ -21,20 +17,31 @@ public class MusixMatch {
 	private String real_artist;
 
 	public MusixMatch(String title, String artist) throws UnsupportedEncodingException{
-		Map<String, String> map = GetMusixMatchLyrics(title, artist);
-		if(map != null && map.get("instrumental").equalsIgnoreCase("1")){
-			lyrics = "Instrumental";
-			return;
-		}else if(map != null && map.containsKey("lyrics")){
-			real_artist = map.get("artist");
-			lyrics = map.get("lyrics");
-			return;
+		Map<String, String> map;
+		if(artist != null){
+			map = GetMusixMatchLyrics(title, artist);
+			if(map != null && map.get("instrumental").equalsIgnoreCase("1")){
+				lyrics = "Instrumental";
+				return;
+			}else if(map != null && map.containsKey("lyrics")){
+				if(map.get("lyrics") == null){
+					status = false;
+					return;
+				}
+				real_artist = map.get("artist");
+				lyrics = map.get("lyrics");
+				return;
+			}
 		}
 		map = GetMusixMatchLyrics(title);
 		if(map != null && map.get("instrumental").equalsIgnoreCase("1")){
 			lyrics = "Instrumental";
 			return;
 		}else if(map != null && map.containsKey("lyrics")){
+			if(map.get("lyrics") == null){
+				status = false;
+				return;
+			}
 			real_artist = map.get("artist");
 			lyrics = map.get("lyrics");
 			return;
@@ -55,11 +62,15 @@ public class MusixMatch {
 
 	// apikey = https://github.com/jiteshgupta/lyrickpick/blob/af7cfedd894854442ee4259748bb5c4d4ae546fe/LyrickPick/LyrickPick/Processors/FetchLyrics.cs
 	private Map<String, String> GetMusixMatchLyrics(String title) throws UnsupportedEncodingException{
-		JSONObject obj = getHttpJson(
+		JSONObject obj = TomachiMusicBot.getHttpJson(
 			"http://api.musixmatch.com/ws/1.1/track.search?q_track=" + URLEncoder.encode(title, "UTF-8") + "&apikey=8b7654870c8395335a30eb19039218f6",
 			null
 		);
-
+		try{
+			obj.getJSONObject("message").getJSONObject("body");
+		}catch(JSONException e){
+			return null;
+		}
 		JSONArray track_list = obj.getJSONObject("message").getJSONObject("body").getJSONArray("track_list");
 		if(track_list.length() != 1){
 			return null;
@@ -73,11 +84,15 @@ public class MusixMatch {
 	}
 
 	private Map<String, String> GetMusixMatchLyrics(String title, String artist) throws UnsupportedEncodingException{
-		JSONObject obj = getHttpJson(
+		JSONObject obj = TomachiMusicBot.getHttpJson(
 			"http://api.musixmatch.com/ws/1.1/track.search?q_track=" + URLEncoder.encode(title, "UTF-8") + "&q_track_artist=" + URLEncoder.encode(artist, "UTF-8") + "&apikey=8b7654870c8395335a30eb19039218f6",
 			null
 		);
-
+		try{
+			obj.getJSONObject("message").getJSONObject("body");
+		}catch(JSONException e){
+			return null;
+		}
 		JSONArray track_list = obj.getJSONObject("message").getJSONObject("body").getJSONArray("track_list");
 		if(track_list.length() == 1){
 			return null;
@@ -101,97 +116,21 @@ public class MusixMatch {
 		headers.put("accept-language", "en-US,en;q=0.8");
 		headers.put("accept-encoding", "gzip, deflate");
 		headers.put("dnt", "1");
-		JSONObject obj = getHttpGZIPJson(
+		JSONObject obj = TomachiMusicBot.getHttpGZIPJson(
 			"https://apic-desktop.musixmatch.com/ws/1.1/track.lyrics.get?format=json&track_id=" + track_id + "&user_language=ja&f_subtitle_length=0&f_subtitle_length_max_deviation=0&subtitle_format=lrc&app_id=web-desktop-app-v1.0&guid=e08e6c63-edd1-4207-86dc-d350cdf7f4bc&usertoken=1710144894f79b194e5a5866d9e084d48f227d257dcd8438261277",
 			headers
 		);
+		try{
+			obj.getJSONObject("message").getJSONObject("body");
+		}catch(JSONException e){
+			return null;
+		}
 		if(!obj.getJSONObject("message").getJSONObject("body").has("lyrics")){
 			// なかったらreturn
 			return null;
 		}
+
 		return obj.getJSONObject("message").getJSONObject("body").getJSONObject("lyrics").getString("lyrics_body").replaceAll("\n", "\r\n");
 	}
-	private JSONObject getHttpJson(String address, Map<String, String> headers){
-		StringBuilder builder = new StringBuilder();
-		try{
-			URL url = new URL(address);
 
-			HttpURLConnection connect = (HttpURLConnection) url.openConnection();
-			connect.setRequestMethod("GET");
-			if(headers != null){
-				for(Map.Entry<String, String> header : headers.entrySet()) {
-					connect.setRequestProperty(header.getKey(), header.getValue());
-				}
-			}
-
-			connect.connect();
-
-			if(connect.getResponseCode() != HttpURLConnection.HTTP_OK){
-				InputStream in = connect.getErrorStream();
-
-				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-				String line;
-				while ((line = reader.readLine()) != null) {
-					builder.append(line);
-				}
-				in.close();
-				connect.disconnect();
-
-				System.out.println("HTTPWARN: " + connect.getResponseMessage());
-				return null;
-			}
-
-			InputStream in = connect.getInputStream();
-
-			JSONTokener tokener = new JSONTokener(in);
-			JSONObject json = new JSONObject(tokener);
-			in.close();
-			connect.disconnect();
-			return json;
-		}catch(Exception e){
-			return null;
-		}
-	}
-	private JSONObject getHttpGZIPJson(String address, Map<String, String> headers){
-		StringBuilder builder = new StringBuilder();
-		try{
-			URL url = new URL(address);
-
-			HttpURLConnection connect = (HttpURLConnection) url.openConnection();
-			connect.setRequestMethod("GET");
-			if(headers != null){
-				for(Map.Entry<String, String> header : headers.entrySet()) {
-					connect.setRequestProperty(header.getKey(), header.getValue());
-				}
-			}
-
-			connect.connect();
-
-			if(connect.getResponseCode() != HttpURLConnection.HTTP_OK){
-				InputStream in = connect.getErrorStream();
-
-				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-				String line;
-				while ((line = reader.readLine()) != null) {
-					builder.append(line);
-				}
-				in.close();
-				connect.disconnect();
-
-				System.out.println("HTTPWARN: " + connect.getResponseMessage());
-				return null;
-			}
-
-			InputStream in = connect.getInputStream();
-			GZIPInputStream gin = new GZIPInputStream(in);
-
-			JSONTokener tokener = new JSONTokener(gin);
-			JSONObject json = new JSONObject(tokener);
-			in.close();
-			connect.disconnect();
-			return json;
-		}catch(Exception e){
-			return null;
-		}
-	}
 }

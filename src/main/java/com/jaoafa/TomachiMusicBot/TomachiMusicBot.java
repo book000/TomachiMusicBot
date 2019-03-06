@@ -1,18 +1,34 @@
 package com.jaoafa.TomachiMusicBot;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.zip.GZIPInputStream;
+
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import com.jaoafa.TomachiMusicBot.Command.MainEvent;
 import com.jaoafa.TomachiMusicBot.Event.Event_TrackFinish;
 import com.jaoafa.TomachiMusicBot.Event.Event_TrackStart;
+import com.jaoafa.TomachiMusicBot.Lib.JLyric;
+import com.jaoafa.TomachiMusicBot.Lib.KasiTime;
+import com.jaoafa.TomachiMusicBot.Lib.MusixMatch;
+import com.jaoafa.TomachiMusicBot.Lib.Utamap;
 import com.vdurmont.emoji.Emoji;
 import com.vdurmont.emoji.EmojiManager;
 
@@ -26,6 +42,8 @@ import sx.blah.discord.util.DiscordException;
 public class TomachiMusicBot {
 	public static String ImgurKey = null;
 	public static String ImgurKeySECRET = null;
+	public static String GOOGLE_API_KEY = null;
+	public static String CUSTOM_SEARCH_ENGINE_ID = null;
 	private static IChannel Channel = null;
 	private static List<File> songDir;
 	public static void main(String[] args) {
@@ -43,6 +61,8 @@ public class TomachiMusicBot {
 			props.setProperty("token", "PLEASETOKEN");
 			props.setProperty("ImgurKey", "PLEASETOKEN");
 			props.setProperty("ImgurKeySECRET", "PLEASETOKEN");
+			props.setProperty("GOOGLE_API_KEY", "PLEASETOKEN");
+			props.setProperty("CUSTOM_SEARCH_ENGINE_ID", "PLEASETOKEN");
 			try {
 				props.store(new FileOutputStream("conf.properties"), "Comments");
 				System.out.println("Please Config Token!");
@@ -70,6 +90,16 @@ public class TomachiMusicBot {
 			return;
 		}
 		ImgurKeySECRET = props.getProperty("ImgurKeySECRET");
+		if(ImgurKeySECRET.equalsIgnoreCase("PLEASETOKEN")){
+			System.out.println("Please Token!");
+			return;
+		}
+		GOOGLE_API_KEY = props.getProperty("GOOGLE_API_KEY");
+		if(ImgurKeySECRET.equalsIgnoreCase("PLEASETOKEN")){
+			System.out.println("Please Token!");
+			return;
+		}
+		CUSTOM_SEARCH_ENGINE_ID = props.getProperty("CUSTOM_SEARCH_ENGINE_ID");
 		if(ImgurKeySECRET.equalsIgnoreCase("PLEASETOKEN")){
 			System.out.println("Please Token!");
 			return;
@@ -141,5 +171,195 @@ public class TomachiMusicBot {
 			}
 		}
 		return returnFiles;
+	}
+	public static Map<String, String> getLyrics(String title, String artist){
+		Map<String, String> r = new HashMap<String, String>();
+		// J-Lyrics
+		String lyrics = JLyric.search(title, artist);
+		if(lyrics != null){
+			r.put("status", "true");
+			r.put("lyrics", lyrics);
+			r.put("source", "j-lyric.net");
+			return r;
+		}
+
+		// KasiTime
+		try {
+			lyrics = KasiTime.search(title, artist);
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		if(lyrics != null){
+			r.put("status", "true");
+			r.put("lyrics", lyrics);
+			r.put("source", "kasi-time.com");
+			return r;
+		}
+
+		// MusixMatch
+		try {
+			MusixMatch musixmatch = new MusixMatch(title, artist);
+			if(musixmatch.getStatus()){
+				lyrics = musixmatch.getLyrics();
+				if(lyrics != null){
+					String realArtist = musixmatch.getRealArtist();
+
+					r.put("status", "true");
+					r.put("lyrics", lyrics);
+					r.put("realartist", realArtist);
+					r.put("source", "musixmatch.com");
+					return r;
+				}
+			}
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return null;
+		}
+
+		// Utamap
+		try {
+			lyrics = Utamap.search(title, artist);
+			if(lyrics != null){
+				r.put("status", "true");
+				r.put("lyrics", lyrics);
+				r.put("source", "utamap.com");
+				return r;
+			}
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return null;
+		}
+
+		r.put("status", "false");
+		return r;
+	}
+
+	public static JSONObject getHttpJson(String address, Map<String, String> headers){
+		StringBuilder builder = new StringBuilder();
+		try{
+			URL url = new URL(address);
+
+			HttpURLConnection connect = (HttpURLConnection) url.openConnection();
+			connect.setRequestMethod("GET");
+			if(headers != null){
+				for(Map.Entry<String, String> header : headers.entrySet()) {
+					connect.setRequestProperty(header.getKey(), header.getValue());
+				}
+			}
+
+			connect.connect();
+
+			if(connect.getResponseCode() != HttpURLConnection.HTTP_OK){
+				InputStream in = connect.getErrorStream();
+
+				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+				String line;
+				while ((line = reader.readLine()) != null) {
+					builder.append(line);
+				}
+				in.close();
+				connect.disconnect();
+
+				System.out.println("HTTPWARN: " + connect.getResponseMessage());
+				return null;
+			}
+
+			InputStream in = connect.getInputStream();
+
+			JSONTokener tokener = new JSONTokener(in);
+			JSONObject json = new JSONObject(tokener);
+			in.close();
+			connect.disconnect();
+			return json;
+		}catch(Exception e){
+			return null;
+		}
+	}
+	public static String getHttpHTML(String address, Map<String, String> headers){
+		StringBuilder builder = new StringBuilder();
+		try{
+			URL url = new URL(address);
+
+			HttpURLConnection connect = (HttpURLConnection) url.openConnection();
+			connect.setRequestMethod("GET");
+			if(headers != null){
+				for(Map.Entry<String, String> header : headers.entrySet()) {
+					connect.setRequestProperty(header.getKey(), header.getValue());
+				}
+			}
+
+			connect.connect();
+
+			if(connect.getResponseCode() != HttpURLConnection.HTTP_OK){
+				InputStream in = connect.getErrorStream();
+
+				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+				String line;
+				while ((line = reader.readLine()) != null) {
+					builder.append(line);
+				}
+				in.close();
+				connect.disconnect();
+
+				System.out.println("HTTPWARN: " + connect.getResponseMessage());
+				return null;
+			}
+
+			InputStream in = connect.getInputStream();
+			BufferedReader br = new BufferedReader(new InputStreamReader(in));
+			StringBuilder sb = new StringBuilder();
+			String line;
+			while ((line = br.readLine()) != null) {
+			    sb.append(line + "\n");
+			}
+			in.close();
+			connect.disconnect();
+			return sb.toString();
+		}catch(Exception e){
+			return null;
+		}
+	}
+	public static JSONObject getHttpGZIPJson(String address, Map<String, String> headers){
+		StringBuilder builder = new StringBuilder();
+		try{
+			URL url = new URL(address);
+
+			HttpURLConnection connect = (HttpURLConnection) url.openConnection();
+			connect.setRequestMethod("GET");
+			if(headers != null){
+				for(Map.Entry<String, String> header : headers.entrySet()) {
+					connect.setRequestProperty(header.getKey(), header.getValue());
+				}
+			}
+
+			connect.connect();
+
+			if(connect.getResponseCode() != HttpURLConnection.HTTP_OK){
+				InputStream in = connect.getErrorStream();
+
+				BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+				String line;
+				while ((line = reader.readLine()) != null) {
+					builder.append(line);
+				}
+				in.close();
+				connect.disconnect();
+
+				System.out.println("HTTPWARN: " + connect.getResponseMessage());
+				return null;
+			}
+
+			InputStream in = connect.getInputStream();
+			GZIPInputStream gin = new GZIPInputStream(in);
+
+			JSONTokener tokener = new JSONTokener(gin);
+			JSONObject json = new JSONObject(tokener);
+			in.close();
+			connect.disconnect();
+			return json;
+		}catch(Exception e){
+			return null;
+		}
 	}
 }
