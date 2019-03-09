@@ -10,7 +10,25 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class JLyric {
-	public static String search(String title, String artist) {
+	private boolean status = true;
+	private String lyrics = null;
+	private String real_artist = null;
+	public JLyric(String title, String artist){
+		lyrics = search(title, artist);
+		if(lyrics == null){
+			status = false;
+		}
+	}
+	public Boolean getStatus(){
+		return status;
+	}
+	public String getLyrics(){
+		return lyrics;
+	}
+	public String getRealArtist(){
+		return real_artist;
+	}
+	public String search(String title, String artist) {
 		try {
 			String url = getLyricsUrl(title, artist);
 
@@ -23,6 +41,14 @@ public class JLyric {
 			String html = lyricsEle.html();
 			html = html.replaceAll(Pattern.quote("<br />"), "\n");
 			html = html.replace(Pattern.quote("<br>"), "\n");
+
+			Element artistEle = musicPage.body().select("p.sml").first();
+			if(artistEle != null){
+				real_artist = artistEle.text();
+				int index = real_artist.indexOf("：");
+				real_artist = real_artist.substring(index + 1);
+			}
+
 			return html;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -32,7 +58,7 @@ public class JLyric {
 			return null;
 		}
 	}
-	private static String getLyricsUrl(String title, String artist) throws IOException{
+	private String getLyricsUrl(String title, String artist) throws IOException{
 		String searchUrl;
 		if(artist != null){
 			searchUrl = String.format("http://search2.j-lyric.net/index.php?ct=0&ka=&ca=0&kl=&cl=0&kt=%s&ka=%s", URLEncoder.encode(title, "UTF-8"), URLEncoder.encode(artist, "UTF-8"));

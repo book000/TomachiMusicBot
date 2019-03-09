@@ -3,15 +3,16 @@ package com.jaoafa.TomachiMusicBot.Command;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.sql.SQLException;
 import java.util.List;
 
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import com.jaoafa.TomachiMusicBot.TomachiMusicBot;
-import com.mpatric.mp3agic.InvalidDataException;
+import com.jaoafa.TomachiMusicBot.Lib.MusicFilesDB;
 import com.mpatric.mp3agic.Mp3File;
-import com.mpatric.mp3agic.UnsupportedTagException;
 
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.IChannel;
@@ -31,10 +32,6 @@ public class Cmd_Random {
 		embed.withAuthorIcon(client.getApplicationIconURL());
 		embed.withAuthorName("TomachiMusicBot");
 		embed.withAuthorUrl("https://github.com/book000/TomachiMusicBot");
-
-		List<File> songDir = TomachiMusicBot.getMusicFiles();
-
-		Collections.shuffle(songDir);
 
 		int getCount = 1;
 		if(args.length >= 2){
@@ -63,14 +60,30 @@ public class Cmd_Random {
 			NOInstrumental = true;
 		}
 
+		List<Mp3File> files;
+		try {
+			files = MusicFilesDB.Random(getCount, NOInstrumental);
+		} catch (SQLException | ClassNotFoundException e) {
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+			embed.appendField("Error", "SQLの実行に失敗しました。", false);
+			embed.appendField("StackTrace", sw.toString(), false);
+			embed.withColor(Color.RED);
+
+			channel.sendMessage("", embed.build());
+			return;
+		}
+
 		AudioPlayer audioP = AudioPlayer.getAudioPlayerForGuild(guild);
 
 		int addedCount = 0;
-		for(File file : songDir){
-			if(!file.isFile()) continue;
-			try {
-				Mp3File mp3file = new Mp3File(file);
-				String title = "", artist = "", album = "";
+		for(Mp3File mp3file : files){
+			try{
+				File file = new File(mp3file.getFilename());
+				String title = "";
+				String artist = "";
+				String album = "";
 				if(mp3file.hasId3v2Tag()){
 					title = mp3file.getId3v2Tag().getTitle();
 					artist = mp3file.getId3v2Tag().getArtist();
@@ -83,20 +96,22 @@ public class Cmd_Random {
 				long sec = mp3file.getLengthInSeconds();
 				String TimeStr = Cmd_Search.SecToHIS(sec);
 
-				if(NOInstrumental){
-					if(title.contains("instrumental") || title.contains("Instrumental") || title.contains("カラオケ") || title.contains("off vocal") || title.contains("ドラマ")){
-						continue;
-					}
-				}
-
 				audioP.queue(file);
 				embed.appendField("Track" + audioP.getPlaylistSize(), "`" + title + "` - `" + album + "`\n"
 						+ "Author: " + artist + "\n"
 						+ "Time: " + TimeStr, false);
 
 				addedCount++;
-			} catch (UnsupportedTagException | InvalidDataException | IOException | IllegalArgumentException | UnsupportedAudioFileException e) {
-				continue;
+			}catch(IOException | UnsupportedAudioFileException e){
+				StringWriter sw = new StringWriter();
+				PrintWriter pw = new PrintWriter(sw);
+				e.printStackTrace(pw);
+				embed.appendField("Error", "キューへの追加に失敗しました。", false);
+				embed.appendField("StackTrace", sw.toString(), false);
+				embed.withColor(Color.RED);
+
+				channel.sendMessage("", embed.build());
+				return;
 			}
 			getCount--;
 			if(getCount == 0){

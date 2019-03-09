@@ -12,9 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.zip.GZIPInputStream;
@@ -45,7 +43,6 @@ public class TomachiMusicBot {
 	public static String GOOGLE_API_KEY = null;
 	public static String CUSTOM_SEARCH_ENGINE_ID = null;
 	private static IChannel Channel = null;
-	private static List<File> songDir;
 	public static void main(String[] args) {
 		File f = new File("conf.properties");
 		Properties props;
@@ -141,46 +138,24 @@ public class TomachiMusicBot {
 	public static IChannel getChannel(){
 		return Channel;
 	}
-	public static List<File> getMusicFiles(){
-		if(songDir == null){
-			// 音源ファイルキャッシュ？
-			songDir = getIterateListFiles(new File("music"));
-		}
-		return songDir;
-	}
-	public static void refreshMusicFiles(){
-		songDir = getIterateListFiles(new File("music"));
-	}
-	static List<File> getIterateListFiles(File dir){
-		List<File> returnFiles = new ArrayList<>();
-		if(!dir.isDirectory()){
-			return returnFiles;
-		}
-		File[] files = dir.listFiles();
-		if(files == null){
-			return returnFiles;
-		}
-		for(File file : files){
-			if(!file.exists()){
-				continue;
-			}else if(file.isDirectory()){
-				List<File> dir_files = getIterateListFiles(file);
-				if(dir_files.size() != 0) returnFiles.addAll(dir_files);
-			}else if(file.isFile()){
-				returnFiles.add(file);
-			}
-		}
-		return returnFiles;
-	}
+
 	public static Map<String, String> getLyrics(String title, String artist){
 		Map<String, String> r = new HashMap<String, String>();
+		String lyrics = null;
 		// J-Lyrics
-		String lyrics = JLyric.search(title, artist);
-		if(lyrics != null){
-			r.put("status", "true");
-			r.put("lyrics", lyrics);
-			r.put("source", "j-lyric.net");
-			return r;
+		JLyric jlyric = new JLyric(title, artist);
+		if(jlyric.getStatus()){
+			lyrics = jlyric.getLyrics();
+			if(lyrics != null){
+				lyrics = replaceEscapeLyrics(lyrics);
+				String realArtist = jlyric.getRealArtist();
+
+				r.put("status", "true");
+				r.put("lyrics", lyrics);
+				r.put("realartist", realArtist);
+				r.put("source", "j-lyric.net");
+				return r;
+			}
 		}
 
 		// KasiTime
@@ -203,6 +178,7 @@ public class TomachiMusicBot {
 			if(musixmatch.getStatus()){
 				lyrics = musixmatch.getLyrics();
 				if(lyrics != null){
+					lyrics = replaceEscapeLyrics(lyrics);
 					String realArtist = musixmatch.getRealArtist();
 
 					r.put("status", "true");
@@ -221,6 +197,7 @@ public class TomachiMusicBot {
 		try {
 			lyrics = Utamap.search(title, artist);
 			if(lyrics != null){
+				lyrics = replaceEscapeLyrics(lyrics);
 				r.put("status", "true");
 				r.put("lyrics", lyrics);
 				r.put("source", "utamap.com");
@@ -234,7 +211,10 @@ public class TomachiMusicBot {
 		r.put("status", "false");
 		return r;
 	}
-
+	static String replaceEscapeLyrics(String lyrics){
+		lyrics = lyrics.replaceAll("&quot;", "\"");
+		return lyrics;
+	}
 	public static JSONObject getHttpJson(String address, Map<String, String> headers){
 		StringBuilder builder = new StringBuilder();
 		try{

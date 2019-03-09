@@ -3,6 +3,7 @@ package com.jaoafa.TomachiMusicBot.Command;
 import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 
 import com.jaoafa.TomachiMusicBot.TomachiMusicBot;
@@ -72,7 +73,10 @@ public class Cmd_Lyrics {
 			}
 		}
 		if(args.length >= 2){
-			String title = args[1];Map<String, String> data = TomachiMusicBot.getLyrics(title, null);
+			//String title = args[1];
+			String[] slicedArgs = Arrays.copyOfRange(args, 1, args.length);
+			String title = implode(slicedArgs, " ");
+			Map<String, String> data = TomachiMusicBot.getLyrics(title, null);
 			if(data != null && data.get("status").equalsIgnoreCase("true")){
 				String lyrics = data.get("lyrics");
 				String source = data.get("source");
@@ -91,7 +95,7 @@ public class Cmd_Lyrics {
 		TomachiMusicBot.setChannel(message);
 
 		EmbedBuilder embed = new EmbedBuilder();
-		embed.withTitle("TomachiMusicBot - Skip");
+		embed.withTitle("TomachiMusicBot - Lyrics");
 		embed.withAuthorIcon(client.getApplicationIconURL());
 		embed.withAuthorName("TomachiMusicBot");
 		embed.withAuthorUrl("https://github.com/book000/TomachiMusicBot");
@@ -134,5 +138,12 @@ public class Cmd_Lyrics {
 			e.printStackTrace();
 			return;
 		}
+	}
+	static <T> String implode(T[] slicedArgs, String glue) {
+		StringBuilder sb = new StringBuilder();
+		for (T e : slicedArgs) {
+			sb.append(glue).append(e);
+		}
+		return sb.substring(glue.length());
 	}
 }

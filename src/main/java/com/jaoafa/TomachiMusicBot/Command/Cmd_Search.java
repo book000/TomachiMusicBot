@@ -5,8 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -18,11 +18,8 @@ import java.util.regex.Matcher;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import com.jaoafa.TomachiMusicBot.TomachiMusicBot;
-import com.mpatric.mp3agic.ID3v1;
-import com.mpatric.mp3agic.ID3v2;
-import com.mpatric.mp3agic.InvalidDataException;
+import com.jaoafa.TomachiMusicBot.Lib.MusicFilesDB;
 import com.mpatric.mp3agic.Mp3File;
-import com.mpatric.mp3agic.UnsupportedTagException;
 
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.handle.obj.IChannel;
@@ -34,7 +31,7 @@ import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.audio.AudioPlayer;
 
 public class Cmd_Search {
-	public static Map<Long, List<File>> searchData = new HashMap<>();
+	public static Map<Long, List<Mp3File>> searchData = new HashMap<>();
 
 	public static void onCommand(IDiscordClient client, IGuild guild, IChannel channel, IUser author, IMessage message, String[] args){
 		TomachiMusicBot.check(message);
@@ -45,8 +42,6 @@ public class Cmd_Search {
 		embed.withAuthorIcon(client.getApplicationIconURL());
 		embed.withAuthorName("TomachiMusicBot");
 		embed.withAuthorUrl("https://github.com/book000/TomachiMusicBot");
-
-
 
 		if(args.length == 1){
 			// 1つしか引数がない→ヘルプ
@@ -139,7 +134,7 @@ public class Cmd_Search {
 					return;
 				}
 
-				List<File> matchFiles = searchData.get(author.getLongID());
+				List<Mp3File> matchFiles = searchData.get(author.getLongID());
 
 				if((track -1) >= matchFiles.size()){
 					embed.appendField("Error", "指定されたトラック番号の曲は見つかりません。", false);
@@ -149,42 +144,27 @@ public class Cmd_Search {
 					return;
 				}
 
-				File file = matchFiles.get(track-1);
+				Mp3File mp3file = matchFiles.get(track-1);
+				File file = new File(mp3file.getFilename());
 				AudioPlayer audioP = AudioPlayer.getAudioPlayerForGuild(guild);
 
 				embed.withColor(Color.ORANGE);
 				embed.withTitle("TomachiMusicBot - Search - Track Add");
 
-				try{
-					Mp3File mp3file = new Mp3File(file);
-					String title = "", artist = "", album = "";
-					if(mp3file.hasId3v2Tag()){
-						title = mp3file.getId3v2Tag().getTitle();
-						artist = mp3file.getId3v2Tag().getArtist();
-						album = mp3file.getId3v2Tag().getAlbum();
-					}else if(mp3file.hasId3v1Tag()){
-						title = mp3file.getId3v1Tag().getTitle();
-						artist = mp3file.getId3v1Tag().getArtist();
-						album = mp3file.getId3v1Tag().getAlbum();
-					}
-					long sec = mp3file.getLengthInSeconds();
-					String TimeStr = SecToHIS(sec);
-
-					embed.appendField("Title", "`" + title + "`", false);
-					embed.appendField("Album", "`" + album + "`", false);
-					embed.appendField("Artist", "`" + artist + "`", false);
-					embed.appendField("Time", "`" + TimeStr + "`", false);
-				}catch(InvalidDataException | UnsupportedTagException | IOException e){
-					StringWriter sw = new StringWriter();
-					PrintWriter pw = new PrintWriter(sw);
-					e.printStackTrace(pw);
-					embed.appendField("Error", "トラックのパースに失敗しました。", false);
-					embed.appendField("StackTrace", "```" + sw.toString() + "```", false);
-					embed.withColor(Color.RED);
-
-					channel.sendMessage("", embed.build());
-					return;
+				if(mp3file.hasId3v2Tag()){
+					embed.appendField("Title", "`" + mp3file.getId3v2Tag().getTitle() + "`", false);
+					embed.appendField("Album", "`" + mp3file.getId3v2Tag().getAlbum() + "`", false);
+					embed.appendField("Artist", "`" + mp3file.getId3v2Tag().getArtist() + "`", false);
+				}else if(mp3file.hasId3v1Tag()){
+					embed.appendField("Title", "`" + mp3file.getId3v1Tag().getTitle() + "`", false);
+					embed.appendField("Album", "`" + mp3file.getId3v1Tag().getAlbum() + "`", false);
+					embed.appendField("Artist", "`" + mp3file.getId3v1Tag().getArtist() + "`", false);
 				}
+				long sec = mp3file.getLengthInSeconds();
+				String TimeStr = SecToHIS(sec);
+
+				embed.appendField("Time", "`" + TimeStr + "`", false);
+
 				int size = audioP.getPlaylistSize();
 				if(size == 0){
 					embed.appendField("PlayTiming", "いますぐ！", false);
@@ -239,116 +219,23 @@ public class Cmd_Search {
 
 		String searchText = implode(slicedArgs, " ");
 
-		List<File> songDir = TomachiMusicBot.getMusicFiles();
-
-		if(songDir == null || songDir.size() == 0){
-			embed.appendField("Error", "musicディレクトリにファイルが見つかりません。", false);
-			embed.withColor(Color.RED);
-
-			channel.sendMessage("", embed.build());
-			return;
-		}
-
-		List<File> matchFiles = new ArrayList<>();
-		for(File file : songDir){
-			try {
-				Mp3File mp3file = new Mp3File(file);
-
-				if(mp3file.hasId3v2Tag()){
-					ID3v2 id3v2Tag = mp3file.getId3v2Tag();
-
-					String title = id3v2Tag.getTitle();
-					String artist = id3v2Tag.getArtist();
-					String album = id3v2Tag.getAlbum();
-
-					// ONLY Search
-					if(searchTitle != null){
-						if(title.contains(searchTitle)){
-							matchFiles.add(file);
-						}
-						continue; // それしか検索しない
-					}
-					if(searchArtist != null){
-						if(artist.contains(searchArtist)){
-							matchFiles.add(file);
-						}
-						continue; // それしか検索しない
-					}
-					if(searchAlbum != null){
-						if(album.contains(searchAlbum)){
-							matchFiles.add(file);
-						}
-						continue; // それしか検索しない
-					}
-
-					if(title.contains(searchText)){
-						matchFiles.add(file);
-						continue;
-					}
-					if(artist.contains(searchText)){
-						matchFiles.add(file);
-						continue;
-					}
-					if(album.contains(searchText)){
-						matchFiles.add(file);
-						continue;
-					}
-					if(file.getName().contains(searchText)){
-						matchFiles.add(file);
-						continue;
-					}
-				}else if(mp3file.hasId3v1Tag()){
-					ID3v1 id3v1Tag = mp3file.getId3v1Tag();
-
-					String title = id3v1Tag.getTitle();
-					String artist = id3v1Tag.getArtist();
-					String album = id3v1Tag.getAlbum();
-
-					// ONLY Search
-					if(searchTitle != null){
-						if(title.contains(searchTitle)){
-							matchFiles.add(file);
-						}
-						continue; // それしか検索しない
-					}
-					if(searchArtist != null){
-						if(artist.contains(searchArtist)){
-							matchFiles.add(file);
-						}
-						continue; // それしか検索しない
-					}
-					if(searchAlbum != null){
-						if(album.contains(searchAlbum)){
-							matchFiles.add(file);
-						}
-						continue; // それしか検索しない
-					}
-
-					if(title.contains(searchText)){
-						matchFiles.add(file);
-						continue;
-					}
-					if(artist.contains(searchText)){
-						matchFiles.add(file);
-						continue;
-					}
-					if(album.contains(searchText)){
-						matchFiles.add(file);
-						continue;
-					}
-					if(file.getName().contains(searchText)){
-						matchFiles.add(file);
-						continue;
-					}
-				}else{
-					if(file.getName().contains(searchText)){
-						matchFiles.add(file);
-						continue;
-					}
-				}
-			} catch (UnsupportedTagException | InvalidDataException | IOException | IllegalArgumentException e) {
-				continue;
+		List<Mp3File> matchFiles;
+		try{
+			if(searchTitle != null){
+				matchFiles = MusicFilesDB.OnlySearch("title", searchTitle);
+			}else if(searchArtist != null){
+				matchFiles = MusicFilesDB.OnlySearch("artist", searchTitle);
+			}else if(searchAlbum != null){
+				matchFiles = MusicFilesDB.OnlySearch("album", searchTitle);
+			}else{
+				matchFiles = MusicFilesDB.Search(searchText);
 			}
+		}catch(SQLException | ClassNotFoundException e){
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			e.printStackTrace(pw);
+			channel.sendMessage("[" + sdf.format(new Date()) + "] " + "ERROR: 音源ファイルデータベースの読み込みに失敗しました。 ```" + sw.toString() + "```");
+			return;
 		}
 
 		if(matchFiles.isEmpty()){
@@ -360,41 +247,12 @@ public class Cmd_Search {
 		}else if(matchFiles.size() == 1){
 			// 1つ→流す
 			AudioPlayer audioP = AudioPlayer.getAudioPlayerForGuild(guild);
-			File file = matchFiles.get(0);
+			Mp3File mp3file = matchFiles.get(0);
+			File file = new File(mp3file.getFilename());
 
 			embed.withColor(Color.ORANGE);
 			embed.withTitle("TomachiMusicBot - Search - Track Add");
 
-			try{
-				Mp3File mp3file = new Mp3File(file);
-				String title = "", artist = "", album = "";
-				if(mp3file.hasId3v2Tag()){
-					title = mp3file.getId3v2Tag().getTitle();
-					artist = mp3file.getId3v2Tag().getArtist();
-					album = mp3file.getId3v2Tag().getAlbum();
-				}else if(mp3file.hasId3v1Tag()){
-					title = mp3file.getId3v1Tag().getTitle();
-					artist = mp3file.getId3v1Tag().getArtist();
-					album = mp3file.getId3v1Tag().getAlbum();
-				}
-				long sec = mp3file.getLengthInSeconds();
-				String TimeStr = SecToHIS(sec);
-
-				embed.appendField("Title", "`" + title + "`", false);
-				embed.appendField("Album", "`" + album + "`", false);
-				embed.appendField("Artist", "`" + artist + "`", false);
-				embed.appendField("Time", "`" + TimeStr + "`", false);
-			}catch(InvalidDataException | UnsupportedTagException | IOException | IllegalArgumentException e){
-				StringWriter sw = new StringWriter();
-				PrintWriter pw = new PrintWriter(sw);
-				e.printStackTrace(pw);
-				embed.appendField("Error", "トラックのパースに失敗しました。", false);
-				embed.appendField("StackTrace", "```" + sw.toString() + "```", false);
-				embed.withColor(Color.RED);
-
-				channel.sendMessage("", embed.build());
-				return;
-			}
 			int size = audioP.getPlaylistSize();
 			if(size == 0){
 				embed.appendField("PlayTiming", "いますぐ！", false);
@@ -424,7 +282,7 @@ public class Cmd_Search {
 	}
 
 	static void generationPageStr(IDiscordClient client, IChannel channel, Long id, int page){
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		//SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		// 1ページ10曲
 		page--; // 1ページからだけど、計算上0からやりたい
 
@@ -437,7 +295,7 @@ public class Cmd_Search {
 		if(!searchData.containsKey(id)){
 			return;
 		}
-		List<File> matchFiles = searchData.get(id);
+		List<Mp3File> matchFiles = searchData.get(id);
 		int i = page * 10 + 1;
 		if(page * 10 > matchFiles.size()){
 			embed.appendField("Error", "そのページは見つかりません。", false);
@@ -448,31 +306,26 @@ public class Cmd_Search {
 		if(page * 10 + 10 > matchFiles.size()){
 			max = matchFiles.size();
 		}
-		for(File file : matchFiles.subList(page * 10, max)){
-			try{
-				Mp3File mp3file = new Mp3File(file);
-				String title = "", artist = "", album = "";
-				if(mp3file.hasId3v2Tag()){
-					title = mp3file.getId3v2Tag().getTitle();
-					artist = mp3file.getId3v2Tag().getArtist();
-					album = mp3file.getId3v2Tag().getAlbum();
-				}else if(mp3file.hasId3v1Tag()){
-					title = mp3file.getId3v1Tag().getTitle();
-					artist = mp3file.getId3v1Tag().getArtist();
-					album = mp3file.getId3v1Tag().getAlbum();
-				}
-				long sec = mp3file.getLengthInSeconds();
-				String TimeStr = SecToHIS(sec);
-
-				embed.appendField("Track" + i, "`" + title + "` - `" + album + "`\n"
-						+ "Author: " + artist + "\n"
-						+ "Time: " + TimeStr, false);
-			}catch(InvalidDataException | UnsupportedTagException | IOException e){
-				StringWriter sw = new StringWriter();
-				PrintWriter pw = new PrintWriter(sw);
-				e.printStackTrace(pw);
-				channel.sendMessage("[" + sdf.format(new Date()) + "] " + "ERROR: トラックのパースに失敗しました。。 ```" + sw.toString() + "```");
+		for(Mp3File mp3file : matchFiles.subList(page * 10, max)){
+			String title = "";
+			String artist = "";
+			String album = "";
+			if(mp3file.hasId3v2Tag()){
+				title = mp3file.getId3v2Tag().getTitle();
+				artist = mp3file.getId3v2Tag().getArtist();
+				album = mp3file.getId3v2Tag().getAlbum();
+			}else if(mp3file.hasId3v1Tag()){
+				title = mp3file.getId3v1Tag().getTitle();
+				artist = mp3file.getId3v1Tag().getArtist();
+				album = mp3file.getId3v1Tag().getAlbum();
 			}
+			long sec = mp3file.getLengthInSeconds();
+			String TimeStr = SecToHIS(sec);
+
+			embed.appendField("Track" + i, "`" + title + "` - `" + album + "`\n"
+					+ "Author: " + artist + "\n"
+					+ "Time: " + TimeStr, false);
+
 			i++;
 		}
 		embed.appendField("Tip", "`*search page <Page>`で指定したページを閲覧できます。`*search select <TrackNum>`でその曲を選択(再生)できます。", false);

@@ -40,14 +40,12 @@ public class MainEvent {
 		System.out.println("Msg: " + event.getAuthor().getName() + " " + event.getMessage().getContent());
 
 		String[] args;
-		if(text.contains(" ")){
+		if(text.contains("\n")){
+			args = text.split("\n");
+		}else if(text.contains(" ")){
 			args = text.split(" ");
 		}else{
-			if(text.contains("\n")){
-				args = text.split("\n");
-			}else{
-				args = new String[]{text};
-			}
+			args = new String[]{text};
 		}
 		if(args[0].equalsIgnoreCase("*search")){
 			Cmd_Search.onCommand(client, guild, channel, author, message, args);

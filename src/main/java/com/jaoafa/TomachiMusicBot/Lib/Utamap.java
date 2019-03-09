@@ -36,7 +36,9 @@ public class Utamap {
 				null
 			);
 		}
-
+		if(!obj.has("items")){
+			return null;
+		}
 		JSONArray items = obj.getJSONArray("items");
 		if(items.length() == 0){
 			return null;
