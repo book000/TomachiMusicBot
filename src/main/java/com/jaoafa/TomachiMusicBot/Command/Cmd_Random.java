@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -19,6 +20,7 @@ import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
+import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.audio.AudioPlayer;
 
@@ -32,6 +34,24 @@ public class Cmd_Random {
 		embed.withAuthorIcon(client.getApplicationIconURL());
 		embed.withAuthorName("TomachiMusicBot");
 		embed.withAuthorUrl("https://github.com/book000/TomachiMusicBot");
+
+		// VCにいるか
+		Iterator<IVoiceChannel> itr = client.getConnectedVoiceChannels().iterator();
+		boolean JoinedVCBool = false;
+		while(itr.hasNext()){
+			IVoiceChannel vc = itr.next();
+			if(vc.getGuild().getLongID() != guild.getLongID()){
+				continue;
+			}
+			JoinedVCBool = true;
+		}
+		if(!JoinedVCBool){ // VCにいなかったら
+			embed.appendField("Error", "ボイスチャンネルに入っていません。", false);
+			embed.withColor(Color.RED);
+
+			channel.sendMessage("", embed.build());
+			return;
+		}
 
 		int getCount = 1;
 		if(args.length >= 2){
@@ -64,11 +84,10 @@ public class Cmd_Random {
 		try {
 			files = MusicFilesDB.Random(getCount, NOInstrumental);
 		} catch (SQLException | ClassNotFoundException e) {
-			StringWriter sw = new StringWriter();
-			PrintWriter pw = new PrintWriter(sw);
-			e.printStackTrace(pw);
+			e.printStackTrace();
 			embed.appendField("Error", "SQLの実行に失敗しました。", false);
-			embed.appendField("StackTrace", sw.toString(), false);
+			embed.appendField("Message", e.getMessage(), false);
+			embed.appendField("Cause", "" + e.getCause(), false);
 			embed.withColor(Color.RED);
 
 			channel.sendMessage("", embed.build());

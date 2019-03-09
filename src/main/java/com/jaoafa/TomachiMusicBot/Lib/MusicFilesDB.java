@@ -285,16 +285,20 @@ public class MusicFilesDB {
 		Connection conn = DriverManager.getConnection("jdbc:sqlite:MusicFiles.db");
 		PreparedStatement statement;
 		if(NOInstrumental){
-			StringBuilder instSQLs = new StringBuilder();
+			List<String> instSQLs = new ArrayList<>();
 			for(String inst : InstList){
-				instSQLs.append("title LIKE %" + inst + "%");
+				instSQLs.add("title NOT LIKE '%" + inst + "%'");
 			}
 			String instSQL = String.join(" AND ", instSQLs);
+			System.out.println("SELECT * FROM `" + TABLE_NAME + "` WHERE " +
+					instSQL
+					+ " ORDER BY RANDOM() LIMIT ?");
 			statement = conn.prepareStatement("SELECT * FROM `" + TABLE_NAME + "` WHERE " +
 					instSQL
-					+ " ORDER BY RAND() LIMIT ?");
+					+ " ORDER BY RANDOM() LIMIT ?");
 		}else{
-			statement = conn.prepareStatement("SELECT * FROM `" + TABLE_NAME + "` ORDER BY RAND() LIMIT ?");
+			System.out.println("SELECT * FROM `" + TABLE_NAME + "` ORDER BY RANDOM() LIMIT ?");
+			statement = conn.prepareStatement("SELECT * FROM `" + TABLE_NAME + "` ORDER BY RANDOM() LIMIT ?");
 		}
 		statement.setInt(1, max);
 		ResultSet res = statement.executeQuery();
@@ -355,7 +359,6 @@ public class MusicFilesDB {
 		Statement statement = conn.createStatement();
 		ResultSet res = statement.executeQuery("SELECT COUNT(*) FROM sqlite_master WHERE type='table' and name='" + TABLE_NAME + "';");
 		if(res.next()){
-			System.out.println("COUNT(*): " + res.getInt("COUNT(*)"));
 			if(res.getInt("COUNT(*)") != 0){
 				conn.close();
 				return true;
