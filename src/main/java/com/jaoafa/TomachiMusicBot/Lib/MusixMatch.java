@@ -63,7 +63,7 @@ public class MusixMatch {
 	// apikey = https://github.com/jiteshgupta/lyrickpick/blob/af7cfedd894854442ee4259748bb5c4d4ae546fe/LyrickPick/LyrickPick/Processors/FetchLyrics.cs
 	private Map<String, String> GetMusixMatchLyrics(String title) throws UnsupportedEncodingException{
 		JSONObject obj = TomachiMusicBot.getHttpJson(
-			"http://api.musixmatch.com/ws/1.1/track.search?q_track=" + URLEncoder.encode(title, "UTF-8") + "&apikey=8b7654870c8395335a30eb19039218f6",
+			"http://api.musixmatch.com/ws/1.1/track.search?q_track=" + URLEncoder.encode(title, "UTF-8") + "&apikey=76e38a26a27c53a5ead37cbf49cadf3d",
 			null
 		);
 		try{
@@ -85,7 +85,7 @@ public class MusixMatch {
 
 	private Map<String, String> GetMusixMatchLyrics(String title, String artist) throws UnsupportedEncodingException{
 		JSONObject obj = TomachiMusicBot.getHttpJson(
-			"http://api.musixmatch.com/ws/1.1/track.search?q_track=" + URLEncoder.encode(title, "UTF-8") + "&q_track_artist=" + URLEncoder.encode(artist, "UTF-8") + "&apikey=8b7654870c8395335a30eb19039218f6",
+			"http://api.musixmatch.com/ws/1.1/track.search?q_track=" + URLEncoder.encode(title, "UTF-8") + "&q_track_artist=" + URLEncoder.encode(artist, "UTF-8") + "&apikey=76e38a26a27c53a5ead37cbf49cadf3d",
 			null
 		);
 		try{
