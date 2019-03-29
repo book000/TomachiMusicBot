@@ -7,7 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class KasiTime {
+public class Petitlyrics {
 	public static String search(final String _title, final String _artist) throws ClassNotFoundException, SQLException{
 		String title = _title;
 		String artist = _artist;
@@ -26,13 +26,13 @@ public class KasiTime {
 			artist = artist.trim();
 		}
 
-		File sqliteFile = new File("kasiTime.db");
+		File sqliteFile = new File("Petitlyrics.db");
 		if(!sqliteFile.exists()){
 			return null;
 		}
 
 		Class.forName("org.sqlite.JDBC");
-		Connection conn = DriverManager.getConnection("jdbc:sqlite:kasiTime.db");
+		Connection conn = DriverManager.getConnection("jdbc:sqlite:Petitlyrics.db");
 		PreparedStatement statement;
 		if(artist != null){
 			statement = conn.prepareStatement("SELECT * FROM data WHERE title LIKE ? AND artist LIKE ?");

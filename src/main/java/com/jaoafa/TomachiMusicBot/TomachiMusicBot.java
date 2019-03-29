@@ -24,8 +24,11 @@ import com.jaoafa.TomachiMusicBot.Command.MainEvent;
 import com.jaoafa.TomachiMusicBot.Event.Event_TrackFinish;
 import com.jaoafa.TomachiMusicBot.Event.Event_TrackStart;
 import com.jaoafa.TomachiMusicBot.Lib.JLyric;
+import com.jaoafa.TomachiMusicBot.Lib.JoySound;
 import com.jaoafa.TomachiMusicBot.Lib.KasiTime;
 import com.jaoafa.TomachiMusicBot.Lib.MusixMatch;
+import com.jaoafa.TomachiMusicBot.Lib.Petitlyrics;
+import com.jaoafa.TomachiMusicBot.Lib.UtaNet;
 import com.jaoafa.TomachiMusicBot.Lib.Utamap;
 import com.vdurmont.emoji.Emoji;
 import com.vdurmont.emoji.EmojiManager;
@@ -38,8 +41,10 @@ import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.util.DiscordException;
 
 public class TomachiMusicBot {
+	/*
 	public static String ImgurKey = null;
 	public static String ImgurKeySECRET = null;
+	*/
 	public static String GOOGLE_API_KEY = null;
 	public static String CUSTOM_SEARCH_ENGINE_ID = null;
 	private static IChannel Channel = null;
@@ -56,8 +61,10 @@ public class TomachiMusicBot {
 			// ファイル生成
 			props = new Properties();
 			props.setProperty("token", "PLEASETOKEN");
+			/*
 			props.setProperty("ImgurKey", "PLEASETOKEN");
 			props.setProperty("ImgurKeySECRET", "PLEASETOKEN");
+			*/
 			props.setProperty("GOOGLE_API_KEY", "PLEASETOKEN");
 			props.setProperty("CUSTOM_SEARCH_ENGINE_ID", "PLEASETOKEN");
 			try {
@@ -81,24 +88,26 @@ public class TomachiMusicBot {
 			System.out.println("Please Token!");
 			return;
 		}
+		/*
 		ImgurKey = props.getProperty("ImgurKey");
 		if(ImgurKey.equalsIgnoreCase("PLEASETOKEN")){
-			System.out.println("Please Token!");
+			System.out.println("Please ImgurKey!");
 			return;
 		}
 		ImgurKeySECRET = props.getProperty("ImgurKeySECRET");
 		if(ImgurKeySECRET.equalsIgnoreCase("PLEASETOKEN")){
-			System.out.println("Please Token!");
+			System.out.println("Please ImgurKeySECRET!");
 			return;
 		}
+		*/
 		GOOGLE_API_KEY = props.getProperty("GOOGLE_API_KEY");
-		if(ImgurKeySECRET.equalsIgnoreCase("PLEASETOKEN")){
-			System.out.println("Please Token!");
+		if(GOOGLE_API_KEY.equalsIgnoreCase("PLEASETOKEN")){
+			System.out.println("Please GOOGLE_API_KEY!");
 			return;
 		}
 		CUSTOM_SEARCH_ENGINE_ID = props.getProperty("CUSTOM_SEARCH_ENGINE_ID");
-		if(ImgurKeySECRET.equalsIgnoreCase("PLEASETOKEN")){
-			System.out.println("Please Token!");
+		if(CUSTOM_SEARCH_ENGINE_ID.equalsIgnoreCase("PLEASETOKEN")){
+			System.out.println("Please CUSTOM_SEARCH_ENGINE_ID!");
 			return;
 		}
 
@@ -172,6 +181,48 @@ public class TomachiMusicBot {
 			return r;
 		}
 
+		// JoySound
+		try {
+			lyrics = JoySound.search(title, artist);
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		if(lyrics != null){
+			r.put("status", "true");
+			r.put("lyrics", lyrics);
+			r.put("source", "joysound.com");
+			return r;
+		}
+
+		// UtaNet
+		try {
+			lyrics = UtaNet.search(title, artist);
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		if(lyrics != null){
+			r.put("status", "true");
+			r.put("lyrics", lyrics);
+			r.put("source", "uta-net.com");
+			return r;
+		}
+
+		// Petitlyrics
+		try {
+			lyrics = Petitlyrics.search(title, artist);
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		if(lyrics != null){
+			r.put("status", "true");
+			r.put("lyrics", lyrics);
+			r.put("source", "petitlyrics.com");
+			return r;
+		}
+
 		// MusixMatch
 		try {
 			MusixMatch musixmatch = new MusixMatch(title, artist);
@@ -206,6 +257,64 @@ public class TomachiMusicBot {
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			return null;
+		}
+
+		/* ---------------- 以下、アーティストなし ---------------- */
+
+		// KasiTime
+		try {
+			lyrics = KasiTime.search(title, null);
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		if(lyrics != null){
+			r.put("status", "true");
+			r.put("lyrics", lyrics);
+			r.put("source", "kasi-time.com [ARITST NULL]");
+			return r;
+		}
+
+		// JoySound
+		try {
+			lyrics = JoySound.search(title, null);
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		if(lyrics != null){
+			r.put("status", "true");
+			r.put("lyrics", lyrics);
+			r.put("source", "joysound.com [ARITST NULL]");
+			return r;
+		}
+
+		// UtaNet
+		try {
+			lyrics = UtaNet.search(title, null);
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		if(lyrics != null){
+			r.put("status", "true");
+			r.put("lyrics", lyrics);
+			r.put("source", "uta-net.com [ARITST NULL]");
+			return r;
+		}
+
+		// Petitlyrics
+		try {
+			lyrics = Petitlyrics.search(title, null);
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		if(lyrics != null){
+			r.put("status", "true");
+			r.put("lyrics", lyrics);
+			r.put("source", "petitlyrics.com [ARITST NULL]");
+			return r;
 		}
 
 		r.put("status", "false");

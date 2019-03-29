@@ -1,19 +1,12 @@
 package com.jaoafa.TomachiMusicBot.Lib;
 
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import com.jaoafa.TomachiMusicBot.TomachiMusicBot;
 
 public class Utamap {
+	// 一時的に停止。Googleの検索機能使わずに実装する方法を考える
 	public static String search(String title, String artist) throws UnsupportedEncodingException{
+		return null;
+		/*
 		JSONObject obj;
 		if(artist != null){
 			obj = TomachiMusicBot.getHttpJson(
@@ -71,5 +64,6 @@ public class Utamap {
 
         String lyrics = html.substring(i).replaceAll("\r\n", "\n");
         return lyrics;
+        */
 	}
 }
