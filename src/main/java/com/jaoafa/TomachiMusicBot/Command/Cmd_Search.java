@@ -253,6 +253,16 @@ public class Cmd_Search {
 			embed.withColor(Color.ORANGE);
 			embed.withTitle("TomachiMusicBot - Search - Track Add");
 
+			if(mp3file.hasId3v2Tag()){
+				embed.appendField("Title", "`" + mp3file.getId3v2Tag().getTitle() + "`", false);
+				embed.appendField("Album", "`" + mp3file.getId3v2Tag().getAlbum() + "`", false);
+				embed.appendField("Artist", "`" + mp3file.getId3v2Tag().getArtist() + "`", false);
+			}else if(mp3file.hasId3v1Tag()){
+				embed.appendField("Title", "`" + mp3file.getId3v1Tag().getTitle() + "`", false);
+				embed.appendField("Album", "`" + mp3file.getId3v1Tag().getAlbum() + "`", false);
+				embed.appendField("Artist", "`" + mp3file.getId3v1Tag().getArtist() + "`", false);
+			}
+
 			int size = audioP.getPlaylistSize();
 			if(size == 0){
 				embed.appendField("PlayTiming", "いますぐ！", false);

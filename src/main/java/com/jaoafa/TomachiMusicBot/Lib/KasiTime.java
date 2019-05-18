@@ -35,10 +35,10 @@ public class KasiTime {
 		Connection conn = DriverManager.getConnection("jdbc:sqlite:kasiTime.db");
 		PreparedStatement statement;
 		if(artist != null){
-			statement = conn.prepareStatement("SELECT * FROM data WHERE title LIKE ? AND artist LIKE ?");
+			statement = conn.prepareStatement("SELECT * FROM data WHERE title LIKE ? AND artist LIKE ?", ResultSet.TYPE_SCROLL_SENSITIVE);
 			statement.setString(2, "%" + artist + "%");
 		}else{
-			statement = conn.prepareStatement("SELECT * FROM data WHERE title LIKE ?");
+			statement = conn.prepareStatement("SELECT * FROM data WHERE title LIKE ?", ResultSet.TYPE_SCROLL_SENSITIVE);
 		}
 		statement.setString(1, "%" + title + "%");
 
