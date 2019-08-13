@@ -61,9 +61,9 @@ public class JLyric {
 	private String getLyricsUrl(String title, String artist) throws IOException{
 		String searchUrl;
 		if(artist != null){
-			searchUrl = String.format("http://search2.j-lyric.net/index.php?ct=0&ka=&ca=0&kl=&cl=0&kt=%s&ka=%s", URLEncoder.encode(title, "UTF-8"), URLEncoder.encode(artist, "UTF-8"));
+			searchUrl = String.format("http://search.j-lyric.net/index.php?ct=0&ka=&ca=0&kl=&cl=0&kt=%s&ka=%s", URLEncoder.encode(title, "UTF-8"), URLEncoder.encode(artist, "UTF-8"));
 		}else{
-			searchUrl = String.format("http://search2.j-lyric.net/index.php?ct=0&ka=&ca=0&kl=&cl=0&kt=%s", URLEncoder.encode(title, "UTF-8"));
+			searchUrl = String.format("http://search.j-lyric.net/index.php?ct=0&ka=&ca=0&kl=&cl=0&kt=%s", URLEncoder.encode(title, "UTF-8"));
 		}
 		Document searchPage = Jsoup.connect(searchUrl)
 				.userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:63.0) Gecko/20100101 Firefox/63.0").get();
